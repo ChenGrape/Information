@@ -3,11 +3,14 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import  Migrate, MigrateCommand
+from flask_script import Manager
 
 app = Flask(__name__)
 
 class Config(object):
 
+    DEBUG = True
     SECRET_KEY = "fdhgsbjfsa"
 
     # 数据库配置
@@ -38,6 +41,11 @@ Session(app)
 # 设置应用程序csrf保护
 CSRFProtect(app)
 
+# 配置数据库迁移
+manager = Manager(app)
+Migrate(app, db)
+manager.add_command("db", MigrateCommand)
+
 @app.route("/", methods=['GET', 'POST'])
 def hello_world():
     redis_store.set("name", "zhangsan")
@@ -46,5 +54,5 @@ def hello_world():
     return "hello word!"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
 
