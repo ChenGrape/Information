@@ -1,2 +1,11 @@
 *.idea/
 *.pyc
+
+# 解决Push to origin/master was rejected问题
+# git pull
+
+# git pull origin master
+
+# git pull origin master --allow-unrelated-histories
+
+
