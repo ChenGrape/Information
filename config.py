@@ -1,4 +1,6 @@
+import logging
 import redis
+
 
 class Config(object):
 
@@ -19,12 +21,16 @@ class Config(object):
     SESSION_USE_SIGNER = True # 设置签名
     PERMANENT_SESSION_LIFETIME = 3600 * 24 * 2  # 设置session有效时间
 
+    # 设置日志等级
+    LEVEL = logging.DEBUG
+
 # 开发模式
 class DeveloperConfig(Config):
     pass
 # 生产模式
 class ProductConfig(Config):
     DEBUG = False
+    LEVEL = logging.ERROR
     pass
 # 测试模式
 class TestingConfig(Config):
