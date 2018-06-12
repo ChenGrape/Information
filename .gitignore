@@ -1,11 +1,13 @@
 *.idea/
 *.pyc
+logs/log*
 
 # 解决Push to origin/master was rejected问题
 # git pull
-
 # git pull origin master
-
 # git pull origin master --allow-unrelated-histories
 
 
+#   解决端口占用 Failed to connect to 127.0.0.1 port 1080: Connection refused
+# 查询是否使用代理：git config --global http.proxy
+# 取消代理：git config --global --unset http.proxy
