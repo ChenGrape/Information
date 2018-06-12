@@ -8,7 +8,7 @@ class Config(object):
     SECRET_KEY = "fdhgsbjfsa"
 
     # 数据库配置
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:root@localhost:3306/information"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:root@127.0.0.1:3306/information"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     #创建redis

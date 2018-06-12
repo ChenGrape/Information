@@ -8,8 +8,6 @@ from flask_session import Session
 from flask_wtf.csrf import CSRFProtect
 
 
-
-
 # 创建对象db
 db = SQLAlchemy()
 

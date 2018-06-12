@@ -11,3 +11,10 @@ logs/log*
 #   解决端口占用 Failed to connect to 127.0.0.1 port 1080: Connection refused
 # 查询是否使用代理：git config --global http.proxy
 # 取消代理：git config --global --unset http.proxy
+
+
+# 数据库迁移命令
+# python manager.py db init
+# python manager.py db migrate -m 'initial'
+# python manager.py db upgrade
+
