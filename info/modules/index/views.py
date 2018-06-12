@@ -1,10 +1,11 @@
+from info import redis_store
 from . import index_blu
 
 @index_blu.route("/", methods=['GET', 'POST'])
 def hello_world():
-    # redis_store.set("name", "zhangsan")
-    # name = redis_store.get("name")
-    # print(name)
+    redis_store.set("name", "zhangsan")
+    name = redis_store.get("name")
+    print(name)
     # logging.debug('debugAAAA')
     # logging.info('infoAAA')
     # logging.error('errorAAA')

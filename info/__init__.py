@@ -6,12 +6,15 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from flask_wtf.csrf import CSRFProtect
-from info.modules.index import index_blu
+
 
 
 
 # 创建对象db
 db = SQLAlchemy()
+
+# 定义redis为全局变量
+redis_store = None
 
 # 工厂方法，根据不同的参数，创建不同的环境下的app对象
 def create_app(config_name):
@@ -31,6 +34,7 @@ def create_app(config_name):
     db.init_app(app)
 
     # 创建redis
+    global redis_store
     redis_store = redis.StrictRedis(host=config.REDIS_HOST, port=config.REDIS_PORT,decode_responses=True)
 
     # 创建session，添加到app中
@@ -40,6 +44,8 @@ def create_app(config_name):
     CSRFProtect(app)
 
     # 注册首页蓝图对象
+    # 解决循环导包，使用内导包方法
+    from info.modules.index import index_blu
     app.register_blueprint(index_blu)
 
     return app
