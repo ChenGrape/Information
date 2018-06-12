@@ -6,14 +6,15 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from flask_wtf.csrf import CSRFProtect
+from info.modules.index import index_blu
+
+
 
 # 创建对象db
 db = SQLAlchemy()
 
 # 工厂方法，根据不同的参数，创建不同的环境下的app对象
 def create_app(config_name):
-
-
 
     app = Flask(__name__)
 
@@ -37,6 +38,9 @@ def create_app(config_name):
 
     # 设置应用程序csrf保护
     CSRFProtect(app)
+
+    # 注册首页蓝图对象
+    app.register_blueprint(index_blu)
 
     return app
 
