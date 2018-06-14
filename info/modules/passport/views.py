@@ -1,11 +1,59 @@
 import random
 import re
-from flask import current_app, jsonify,request,make_response
-from info import constants,redis_store, db
-from info.utils.captcha.captcha import captcha
+from datetime import datetime
+from flask import request, current_app, make_response, json, jsonify, session
+from info import redis_store, constants, db
+from info.libs.yuntongxun.sms import CCP
+from info.models import User
+from info.utils.captcha.captcha import  captcha
 from info.utils.response_code import RET
 from . import passport_blu
-from info.models import User
+
+
+#登陆用户
+# 请求路径: /passport/login
+# 请求方式: POST
+# 请求参数: mobile,password
+# 返回值: errno, errmsg
+@passport_blu.route('/login', methods=['POST'])
+def login():
+
+    # 1.获取参数
+    data_dict = request.json
+    mobile = data_dict.get("mobile")
+    password = data_dict.get("password")
+    # 2.校验参数
+    if not all([mobile,password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+    # 3.通过手机号取出用户对象
+    try:
+        user = User.query.filter(User.mobile == mobile).first()
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据库查询异常")
+    # 4.判断用户对象是否存在
+    if not user:
+        return jsonify(errno=RET.NODATA, errmsg="该用户不存在")
+
+    # 5.判断密码是否正确
+    if not user.check_passowrd(password):
+        return jsonify(errno=RET.DATAERR, errmsg="密码输入错误")
+
+    # 6.记录用户登陆状态
+    session["user_id"] = user.id
+    session["nick_name"] = user.nick_name
+    session["mobile"] = user.mobile
+
+    #记录用户最后登陆时间
+    user.last_login = datetime.now()
+
+    # 7.返回前端页面
+    return jsonify(errno=RET.OK,errmsg="登陆成功")
+
+
+
+
+
 
 
 #注册用户
@@ -46,17 +94,12 @@ def register():
     # 7.保存到数据库
     try:
         db.session.add(user)
-        db.session.commit
+        db.session.commit()
     except Exception as e:
         current_app.logger.error(e)
         return jsonify(errno=RET.DBERR, errmsg="用户保存异常")
     # 8.返回前端页面
     return jsonify(errno=RET.OK,errmsg="注册成功")
-
-
-
-
-
 
 
 
