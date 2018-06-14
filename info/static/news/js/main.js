@@ -120,6 +120,7 @@ $(function(){
             type: "POST",
             data: JSON.stringify(params),
             contentType: "application/json",
+            headers:{"X-CSRFToken":getCookie("csrf_token")},
             success: function (resp) {
                 if (resp.errno == "0") {
                     // 刷新当前界面
@@ -135,6 +136,7 @@ $(function(){
         })
 
     })
+
 
 
     // TODO 注册按钮点击
@@ -179,6 +181,7 @@ $(function(){
             type:"POST",
             data:JSON.stringify(params),
             contentType:"application/json",
+            headers:{"X-CSRFToken":getCookie("csrf_token")},
             success:function (resp) {
 
                 //判断是否注册成功
@@ -196,6 +199,22 @@ $(function(){
 
     })
 })
+
+//退出登陆
+function logout() {
+    $.ajax({
+        url: "/passport/logout",
+        type: "post",
+        contentType: "application/json",
+        headers: {
+            "X-CSRFToken": getCookie("csrf_token")
+        },
+        success: function (resp) {
+            // 刷新当前界面
+            location.reload()
+        }
+    })
+}
 
 var imageCodeId = ""
 var preimageCodeId

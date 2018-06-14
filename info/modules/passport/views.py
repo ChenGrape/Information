@@ -9,6 +9,23 @@ from info.utils.captcha.captcha import  captcha
 from info.utils.response_code import RET
 from . import passport_blu
 
+#退出登陆(restful)
+# 请求路径: /passport/logout
+# 请求方式: POST
+# 请求参数: 无
+# 返回值: errno, errmsg
+@passport_blu.route('/logout', methods=['POST'])
+def logout():
+
+    #清除session中的数据
+    # session.clear()
+    session.pop("user_id","")
+    session.pop("nick_name","")
+    session.pop("mobile","")
+
+    #返回响应
+    return jsonify(errno=RET.OK,errmsg="退出成功")
+
 
 #登陆用户
 # 请求路径: /passport/login

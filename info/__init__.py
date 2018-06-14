@@ -5,8 +5,7 @@ import redis
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
-from flask_wtf.csrf import CSRFProtect
-
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 # 创建对象db
 db = SQLAlchemy()
@@ -39,8 +38,17 @@ def create_app(config_name):
     Session(app)
 
     # 设置应用程序csrf保护
-    # CSRFProtect(app)
+    #开了了csrf保护之后,会对['POST', 'PUT', 'PATCH', 'DELETE']类型的请求方法做校验
+    #获取cookie中的csrf_token, 获取headers请求头里面的csrf_token做校验,只做校验
+    #开发者: 需要手动设置,cookie, headers中的csrf_token
+    CSRFProtect(app)
 
+    # 设置请求钩子after_request,每次请求完成之后都会走该钩子修饰的方法
+    @app.after_request
+    def after_request(resp):
+        csrf_token = generate_csrf()
+        resp.set_cookie("csrf_token", csrf_token)
+        return resp
     # 注册首页蓝图对象
     # 解决循环导包，使用内导包方法
     from info.modules.index import index_blu
