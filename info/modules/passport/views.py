@@ -1,10 +1,64 @@
 import random
 import re
 from flask import current_app, jsonify,request,make_response
-from info import constants,redis_store
+from info import constants,redis_store, db
 from info.utils.captcha.captcha import captcha
 from info.utils.response_code import RET
 from . import passport_blu
+from info.models import User
+
+
+#注册用户
+# 请求路径: /passport/register
+# 请求方式: POST
+# 请求参数: mobile, sms_code,password
+# 返回值: errno, errmsg
+@passport_blu.route('/register', methods=['POST'])
+def register():
+
+    # 1.获取参数
+    data_dict = request.json
+    mobile = data_dict.get("mobile")
+    sms_code = data_dict.get("sms_code")
+    password = data_dict.get("password")
+
+    # 2.校验参数(为空校验,手机号格式校验)
+    if not all([mobile, sms_code, password]):
+        return jsonify(errno=RET.PARAMERR,errmsg="参数不完整")
+
+    # 3.通过手机号取出redis中的短信验证码
+    try:
+        redis_sms_code = redis_store.get("sms_code:%s"%mobile)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR,errmsg="获取短信验证码异常")
+    # 4.判断是否过期
+    if not redis_sms_code:
+        return jsonify(errno=RET.NODATA, errmsg="短信验证码过期")
+    # 5.判断是否相等
+    if sms_code != redis_sms_code :
+        return jsonify(errno=RET.DATAERR, errmsg="短信验证码填写错误")
+    # 6.创建用户对象,设置属性
+    user = User()
+    user.nick_name = mobile
+    user.mobile = mobile
+    user.password_hash = user.jiami_secret(password)
+    # 7.保存到数据库
+    try:
+        db.session.add(user)
+        db.session.commit
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="用户保存异常")
+    # 8.返回前端页面
+    return jsonify(errno=RET.OK,errmsg="注册成功")
+
+
+
+
+
+
+
 
 # 短信验证码
 # 请求路径： /passport/sms_code
