@@ -39,7 +39,7 @@ def create_app(config_name):
     Session(app)
 
     # 设置应用程序csrf保护
-    CSRFProtect(app)
+    # CSRFProtect(app)
 
     # 注册首页蓝图对象
     # 解决循环导包，使用内导包方法
