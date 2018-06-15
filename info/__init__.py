@@ -8,6 +8,8 @@ from flask_session import Session
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 # 创建对象db
+from info.utils.common import do_index_filter
+
 db = SQLAlchemy()
 
 # 定义redis为全局变量
@@ -57,6 +59,9 @@ def create_app(config_name):
     # 注册图片验证码蓝图
     from info.modules.passport import passport_blu
     app.register_blueprint(passport_blu)
+
+    # 将过滤器添加到模板过滤器中
+    app.add_template_filter(do_index_filter, "index_filter")
 
     return app
 
