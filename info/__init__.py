@@ -60,6 +60,10 @@ def create_app(config_name):
     from info.modules.passport import passport_blu
     app.register_blueprint(passport_blu)
 
+    # 详细页面蓝图
+    from info.modules.news import news_blu
+    app.register_blueprint(news_blu)
+
     # 将过滤器添加到模板过滤器中
     app.add_template_filter(do_index_filter, "index_filter")
 
