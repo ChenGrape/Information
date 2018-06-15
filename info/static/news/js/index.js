@@ -9,12 +9,16 @@ $(function () {
     updateNewsData()
     // 首页分类切换
     $('.menu li').click(function () {
+        //获取分类编号
         var clickCid = $(this).attr('data-cid')
+        //上个分类选择状态移除
         $('.menu li').each(function () {
             $(this).removeClass('active')
         })
+        //将当前选中的分类置为选中状态
         $(this).addClass('active')
 
+        //判断当前是否点击的不是当前编号
         if (clickCid != currentCid) {
             // 记录当前分类id
             currentCid = clickCid
@@ -41,8 +45,19 @@ $(function () {
         // 页面滚动了多少,这个是随着页面滚动实时变化的
         var nowScroll = $(document).scrollTop();
 
-        if ((canScrollHeight - nowScroll) < 100) {
+        if ((canScrollHeight - nowScroll) < 200) {
             // TODO 判断页数，去更新新闻数据
+            if (!house_data_querying) {
+                // 将`是否正在向后端查询新闻数据`的标志设置为真
+                house_data_querying = true;
+                // 如果当前页面数还没到达总页数
+                if (cur_page < total_page) {
+                    // 向后端发送请求，查询下一页新闻数据
+                    updateNewsData();
+                } else {
+                    house_data_querying = false;
+                }
+            }
         }
     })
 })
