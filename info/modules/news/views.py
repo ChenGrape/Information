@@ -127,12 +127,22 @@ def new_detail(news_id):
     if g.user and news in g.user.collection_news:
         is_collected = True
 
+    # 获取新闻所有评论
+    try:
+        comments = Comment.query.filter(Comment.news_id == news_id).order_by(Comment.create_time.desc()).all()
+    except Exception as e:
+        current_app.logger.error(e)
+    comments_list =[]
+    for comment in comments:
+        comments_list.append(comment.to_dict())
+
     data = {
         # 如果user为空返回None,如果有内容返回左边
         "user_info": g.user.to_dict() if g.user else None,
         "news_info": click_news_list,
         "news":news.to_dict(),
-        "is_collected":is_collected
+        "is_collected":is_collected,
+        "comments":comments_list
 
     }
     return render_template("news/detail.html", data = data)

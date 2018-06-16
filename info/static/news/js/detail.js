@@ -183,3 +183,10 @@ $(function(){
 
     })
 })
+
+//  更新评论条数
+function updateCommentCount() {
+    var length = $(".comment_list").length()
+    $(".comment_count").html(length+"条评论")
+
+}
