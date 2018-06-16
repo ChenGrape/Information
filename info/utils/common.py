@@ -1,4 +1,6 @@
 # 自定义模板过滤器
+from functools import wraps
+
 from flask import current_app
 from flask import g
 from flask import session
@@ -20,6 +22,7 @@ def do_index_filter(index):
 
 # 装饰器，封装用户登陆数据
 def user_login_data(view_func):
+    @wraps(view_func)
     def wrapper(*args, **kwargs):
 
         # 获取用户编号
