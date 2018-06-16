@@ -32,11 +32,17 @@ def new_detail(news_id):
     if not news:
         abort(404)
 
+    # 判断用户是否收藏过该新闻
+    is_collected = False
+    if g.user and news in g.user.collection_news:
+        is_collected = True
+
     data = {
         # 如果user为空返回None,如果有内容返回左边
         "user_info": g.user.to_dict() if g.user else None,
         "news_info": click_news_list,
-        "news":news.to_dict()
+        "news":news.to_dict(),
+        "is_collected":True
 
     }
     return render_template("news/detail.html", data = data)
