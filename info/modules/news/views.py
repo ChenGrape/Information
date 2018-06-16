@@ -1,12 +1,60 @@
 import errno
 from flask import abort, jsonify,request,current_app,g,render_template
-from info import constants
-from info.models import User,News
+from info import constants, db
+from info.models import User,News, Comment
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
 from . import news_blu
 
+#新闻评论
+# 请求路径: /news/news_comment
+# 请求方式: POST
+# 请求参数:news_id,comment,parent_id g.user
+# 返回值: errno,errmsg
 
+@news_blu.route('/news_comment', methods=['POST'])
+@user_login_data
+def news_comment():
+    """
+    1.判断用户是否登陆
+    2.获取参数
+    3.校验参数,为空校验
+    4.创建评论对象，设置属性
+    5.提交到数据库
+    6.返回响应
+    :return:
+    """
+    # 1.判断用户是否登陆
+    if not g.user:
+        return jsonify(errno=RET.NODATA, errmsg="用户未登录")
+
+    # 2.获取参数
+    data_dict = request.json
+    news_id = data_dict.get("news_id")
+    content = data_dict.get("comment")
+    parent_id = data_dict.get("parent_id")
+
+    # 3.校验参数,为空校验
+    if not all([news_id,content]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+
+    # 4.创建评论对象，设置属性
+    comment = Comment()
+    comment.user_id = g.user.id
+    comment.content = content
+    comment.news_id = news_id
+    if parent_id:
+        comment.parent_id = parent_id
+
+    # 5.提交到数据库
+    try:
+        db.session.add(comment)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(e)
+    # 6.返回响应
+    return jsonify(errno=RET.OK, errmsg="操作成功",data=comment.to_dict())
 
 #新闻收藏/取消收藏
 # 请求路径: /news/news_collect
