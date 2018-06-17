@@ -1,7 +1,7 @@
 import errno
 from flask import abort, jsonify,request,current_app,g,render_template
 from info import constants, db
-from info.models import User,News, Comment
+from info.models import User,News, Comment, CommentLike
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
 from . import news_blu
@@ -132,9 +132,34 @@ def new_detail(news_id):
         comments = Comment.query.filter(Comment.news_id == news_id).order_by(Comment.create_time.desc()).all()
     except Exception as e:
         current_app.logger.error(e)
+
+    # 查询用户对当前新闻,哪些评论点过赞
+    if g.user:
+
+        # 获取评论的id
+        comm_ids = [comm.id for comm in comments]
+
+        # 获取用户点赞过的评论, 的所有点赞对象
+        # CommentLike.comment_id.in_(comment_ids): 获取当前新闻的,评论的,所有点赞对象(有张三,李四,王五的点赞)
+        # CommentLike.user_id == g.user.id :过滤出了,某个(比如张三)人的点赞对象
+        commentLike = CommentLike.query.filter(CommentLike.comment_id.in_(comm_ids),CommentLike.user.id == g.user.id )
+
+        # 得到用户点赞过的，所有评论编号
+        commentlike_id = [comm_like.comment_id for comm_like in commentLike]
+
     comments_list =[]
     for comment in comments:
-        comments_list.append(comment.to_dict())
+        # comments_list.append(comment.to_dict())
+
+        # 向评论字典中添加点赞属性
+        comm_dict = comment.to_dict()
+        comm_dict["is_like"] = True
+        # 如果登陆了,并且,当前的评论编号在我点赞过的评论编号中,改变is_like的值
+        if g.user and comment.id in commentlike_id:
+            comm_dict["is_like"] = True
+
+        comments_list.append(comm_dict)
+
 
     data = {
         # 如果user为空返回None,如果有内容返回左边
