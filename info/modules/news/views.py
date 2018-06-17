@@ -6,6 +6,87 @@ from info.utils.common import user_login_data
 from info.utils.response_code import RET
 from . import news_blu
 
+
+# 点赞/取消点赞
+# 请求路径: /news/comment_like
+# 请求方式: POST
+# 请求参数:news_id,comment_id,action,g.user
+# 返回值: errno,errmsg
+@news_blu.route('/comment_like', methods=['POST'])
+@user_login_data
+def comment_like():
+    """
+    思路分析
+    1.判断用户是否有登陆
+    2.获取参数
+    3.校验参数
+    4.根据操作类型,执行具体操作
+    5.返回响应
+    :return:
+    """
+    # 1.判断用户是否有登陆
+
+    if not g.user:
+
+        return jsonify(errno=RET.NODATA, errmsg="该用户没有登陆")
+
+    # 2.获取参数
+    dict_data = request.json
+    news_id = dict_data.get("news_id")
+    comment_id = dict_data.get("comment_id")
+    action = dict_data.get("action")
+
+    # 3.校验参数
+
+    if not all([news_id, comment_id, action]):
+
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+
+    if not action in ["add", "remove"]:
+
+        return jsonify(errno=RET.DATAERR, errmsg="操作类型有误")
+
+      # 取出评论对象
+
+    try:
+        comment = Comment.query.get(comment_id)
+    except Exception as e:
+        current_app.logger.error(e)
+
+
+    if not comment:
+
+        return jsonify(errno=RET.NODATA, errmsg="该评论不存在")
+
+    # 4.根据操作类型,执行具体操作
+    if action == "add":
+        # 判断用户是否已经点过赞了
+        comment_like = CommentLike.query.filter(CommentLike.comment_id == comment_id,
+                                                     CommentLike.user_id == g.user.id).first()
+        if not comment_like:
+            comment_like = CommentLike()
+            comment_like.comment_id = comment_id
+            comment_like.user_id = g.user.id
+            db.session.add(comment_like)
+
+            # 将点赞数量 +1
+            # comment.like_count += 1
+    else:
+        # 判断用户是否已经点过赞了
+        comment_like = CommentLike.query.filter(CommentLike.comment_id == comment_id,
+                                                     CommentLike.user_id == g.user.id).first()
+
+        if comment_like:
+            db.session.delete(comment_like)
+
+            # 将点赞数量-1操作
+            # comment.likecount -= 1
+
+    # 5.返回响应
+
+    return jsonify(errno=RET.OK, errmsg="操作成功")
+
+
 #新闻评论
 # 请求路径: /news/news_comment
 # 请求方式: POST
@@ -142,7 +223,7 @@ def new_detail(news_id):
         # 获取用户点赞过的评论, 的所有点赞对象
         # CommentLike.comment_id.in_(comment_ids): 获取当前新闻的,评论的,所有点赞对象(有张三,李四,王五的点赞)
         # CommentLike.user_id == g.user.id :过滤出了,某个(比如张三)人的点赞对象
-        commentLike = CommentLike.query.filter(CommentLike.comment_id.in_(comm_ids),CommentLike.user.id == g.user.id )
+        commentLike = CommentLike.query.filter(CommentLike.comment_id.in_(comm_ids),CommentLike.user_id == g.user.id).all()
 
         # 得到用户点赞过的，所有评论编号
         commentlike_id = [comm_like.comment_id for comm_like in commentLike]
@@ -153,7 +234,7 @@ def new_detail(news_id):
 
         # 向评论字典中添加点赞属性
         comm_dict = comment.to_dict()
-        comm_dict["is_like"] = True
+        comm_dict["is_like"] = False
         # 如果登陆了,并且,当前的评论编号在我点赞过的评论编号中,改变is_like的值
         if g.user and comment.id in commentlike_id:
             comm_dict["is_like"] = True
