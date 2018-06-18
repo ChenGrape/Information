@@ -35,7 +35,7 @@
                     {% else %}
                         <img src="../../static/news/images/person01.png" class="lgin_pic">
                     {% endif %}
-                    <a href="#">{{ data.user_info.nick_name }}</a>
+                    <a href="/user/user_info">{{ data.user_info.nick_name }}</a>
                     <a href="#" onclick="logout()">退出</a>
                 </div>
             {% else %}
@@ -53,27 +53,27 @@
 
         {% endblock %}
 
-
+        {% block rankBlock %}
         {# 点击排行 #}
-        <div class="rank_con fr">
+            <div class="rank_con fr">
 
-            {# 作者信息部分 #}
-            {% block authorBlock %}
+                {# 作者信息部分 #}
+                {% block authorBlock %}
 
-            {% endblock %}
+                {% endblock %}
 
-            <div class="rank_title">
-                <h3>点击排行</h3>
+                <div class="rank_title">
+                    <h3>点击排行</h3>
+                </div>
+                <ul class="rank_list">
+
+                    {% for click_news in data.news_info %}
+                        <li><span class="{{ loop.index | index_filter }}">{{ loop.index }}</span><a href="#">{{ click_news.title }}</a></li>
+                    {% endfor %}
+
+                </ul>
             </div>
-            <ul class="rank_list">
-
-                {% for click_news in data.news_info %}
-                    <li><span class="{{ loop.index | index_filter }}">{{ loop.index }}</span><a href="#">{{ click_news.title }}</a></li>
-                {% endfor %}
-
-            </ul>
-        </div>
-
+        {% endblock %}
     </div>
     <div class="footer">
         <div class="footer_links">

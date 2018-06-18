@@ -64,6 +64,10 @@ def create_app(config_name):
     from info.modules.news import news_blu
     app.register_blueprint(news_blu)
 
+    # 个人中心蓝图
+    from info.modules.profile import profile_blu
+    app.register_blueprint(profile_blu)
+
     # 将过滤器添加到模板过滤器中
     app.add_template_filter(do_index_filter, "index_filter")
 
