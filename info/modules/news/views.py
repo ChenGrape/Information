@@ -70,7 +70,7 @@ def comment_like():
             db.session.add(comment_like)
 
             # 将点赞数量 +1
-            # comment.like_count += 1
+            comment.like_count += 1
     else:
         # 判断用户是否已经点过赞了
         comment_like = CommentLike.query.filter(CommentLike.comment_id == comment_id,
@@ -80,7 +80,7 @@ def comment_like():
             db.session.delete(comment_like)
 
             # 将点赞数量-1操作
-            # comment.likecount -= 1
+            comment.like_count -= 1
 
     # 5.返回响应
 
