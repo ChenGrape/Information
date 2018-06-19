@@ -25,18 +25,49 @@ def collection():
     return render_template("news/user_collection.html")
 
 # 密码修改页面
-@profile_blu.route('/pass_info')
+# URL：/user/pass_info
+# 请求方式：POST
+# 传入参数：JSON格式
+# 参数:old_password,new_password
+@profile_blu.route('/pass_info', methods = ['GET','POST'])
+@user_login_data
 def pass_info():
-    return render_template("news/user_pass_info.html")
+    if request.method == "GET":
+        return render_template("news/user_pass_info.html")
+    # 获取参数
+    data_dict = request.json
+    old_password = data_dict.get("old_password")
+    new_password = data_dict.get("new_password")
+    # 校验参数
+    if not all([old_password,new_password]):
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不正确")
+
+    if g.user.check_passowrd == old_password:
+        return jsonify(errno=RET.PARAMERR, errmsg="原密码输入错误")
+    # 数据保存
+    try:
+        g.user.password = new_password
+        db.session.commit()
+    except Exception as e:
+        current_app.logger.error(e)
+        db.session.rollback()
+        return jsonify(errno=RET.DBERR, errmsg="保存数据失败")
+
+    # 4. 返回结果
+    return jsonify(errno=RET.OK, errmsg="更新成功")
+
+
 
 # 我的关注页面
 @profile_blu.route('/user_follow')
 def user_follow():
     return render_template("news/user_follow.html")
 
+
 # 头像设置页面
 @profile_blu.route('/pic_info')
 def pic_info():
+
 
     return render_template("news/user_pic_info.html")
 
