@@ -5,6 +5,7 @@ from flask import session
 
 from info import constants
 from info import db
+from info.models import News
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
 from . import profile_blu
@@ -12,12 +13,45 @@ from flask import render_template,g
 
 # 新闻列表
 @profile_blu.route('/news_list')
+@user_login_data
 def news_list():
-    return render_template("news/user_news_list.html")
+
+    page = request.args.get("p", 1)
+
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        page = 1
+
+    try:
+        paginate = News.query.filter(News.user_id == g.user.id).order_by(News.create_time.desc()).paginate(page, 3,False)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据失败")
+
+    # 获取分页中的内容,总页数,当前页,当前页的所有对象
+    total_page = paginate.pages
+    current_page = paginate.page
+    items = paginate.items
+
+    news_list = []
+    for news in items:
+        news_list.append(news.to_review_dict())
+
+    data = {
+        "total_page": total_page,
+        "current_page": current_page,
+        "news_list": news_list
+    }
+
+    return render_template("news/user_news_list.html", data=data)
 
 # 新闻发布
 @profile_blu.route('/news_release')
 def news_release():
+
+
     return render_template("news/user_news_release.html")
 
 # 我的收藏页面
