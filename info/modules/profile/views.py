@@ -3,6 +3,7 @@ from flask import redirect, jsonify
 from flask import request
 from flask import session
 
+from info import constants
 from info import db
 from info.utils.common import user_login_data
 from info.utils.response_code import RET
@@ -20,9 +21,43 @@ def news_release():
     return render_template("news/user_news_release.html")
 
 # 我的收藏页面
+
 @profile_blu.route('/collection')
+@user_login_data
 def collection():
-    return render_template("news/user_collection.html")
+
+    page = request.args.get("p",1)
+
+    try:
+        page = int(page)
+    except Exception as e:
+        current_app.logger.error(e)
+        page = 1
+
+    try:
+        paginate = g.user.collection_news.paginate(page, constants.USER_COLLECTION_MAX_NEWS, False)
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.DBERR, errmsg="数据失败")
+
+    # 获取分页中的内容,总页数,当前页,当前页的所有对象
+    total_page = paginate.pages
+    current_page = paginate.page
+    items = paginate.items
+
+    news_list = []
+    for news in items:
+        news_list.append(news.to_dict())
+
+    data = {
+        "total_page":total_page,
+        "current_page":current_page,
+        "news_list":news_list
+    }
+
+    return render_template("news/user_collection.html", data = data)
+
+
 
 # 密码修改页面
 # URL：/user/pass_info
