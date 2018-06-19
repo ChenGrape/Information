@@ -7,6 +7,7 @@ from info import constants
 from info import db
 from info.models import News
 from info.utils.common import user_login_data
+from info.utils.image_storage import image_storage
 from info.utils.response_code import RET
 from . import profile_blu
 from flask import render_template,g
@@ -101,6 +102,7 @@ def collection():
 @profile_blu.route('/pass_info', methods = ['GET','POST'])
 @user_login_data
 def pass_info():
+
     if request.method == "GET":
         return render_template("news/user_pass_info.html")
     # 获取参数
@@ -133,12 +135,50 @@ def user_follow():
     return render_template("news/user_follow.html")
 
 
-# 头像设置页面
-@profile_blu.route('/pic_info')
+#图片上传
+# 请求路径: /user/pic_info
+# 请求方式:GET,POST
+# 请求参数:无, POST有参数,avatar
+# 返回值:GET请求: user_pci_info.html页面,data字典数据, POST请求: errno, errmsg,avatar_url
+@profile_blu.route('/pic_info', methods = ['GET','POST'])
+@user_login_data
 def pic_info():
 
+    # 1.第一次进来,是get请求,直接渲染页面
+    if request.method == "GET":
+        return render_template('news/user_pic_info.html', data={"user_info": g.user.to_dict()})
 
-    return render_template("news/user_pic_info.html")
+    # 2.获取参数
+    file_avatar = request.files.get("avatar")
+
+    # 3.校验参数
+    if not file_avatar:
+        return jsonify(errno=RET.PARAMERR, errmsg="参数不完整")
+
+    # 4.上传图片
+    try:
+        # 读取图片内容
+        image_data = file_avatar.read()
+
+        # 上传
+        image_name = image_storage(image_data)
+
+    except Exception as e:
+        current_app.logger.error(e)
+        return jsonify(errno=RET.THIRDERR, errmsg="七牛云上传异常")
+
+    if not image_name:
+        return jsonify(errno=RET.NODATA, errmsg="上传失败")
+
+    # 5.设置图像到的头像中
+    g.user.avatar_url = image_name
+
+    # 6.返回响应
+    data = {
+        "avatar_url": constants.QINIU_DOMIN_PREFIX + image_name
+    }
+    return jsonify(errno=RET.OK, errmsg="上传成功", data=data)
+
 
 # 基本信息页面
 # 请求路径: /user/base_info
